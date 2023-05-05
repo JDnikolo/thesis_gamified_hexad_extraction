@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'scenarios.dart';
 import 'resultScreen.dart';
+import 'dart:async';
 
 enum QuestionStatus { intro, answering, outro }
 
@@ -59,6 +62,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  //scenario handling and text related variables
   List<Scenario> scenarios = allScenarios;
   Scenario currentScenario = introScenario;
   List<String> textList = introScenario.introDialog;
@@ -67,13 +71,44 @@ class _MyHomePageState extends State<MyHomePage> {
   Option leftOption = introScenario.options[0];
   Option rightOption = introScenario.options[0];
 
+  //timer and animation related variables
+  Timer answerTime = Timer(const Duration(microseconds: 0), () => {});
+  int secondsLeft = 0;
+  //point related variables
+  int points = 0;
+
+  //hexad results
   final Map<HexadType, double> hexadResults = {
     for (var type in HexadType.values) type: 0.0
   };
 
+  void handleTimeout() {
+    List<String> selection = ["left", "right"];
+    selection.shuffle();
+    _optionSelected(selection.first);
+  }
+
+  void timerTick(Timer timer) {
+    if (timer.tick < 4) return;
+    if (secondsLeft == 0) {
+      setState(() {
+        answerTime.cancel();
+        handleTimeout();
+      });
+    } else {
+      setState(() {
+        secondsLeft--;
+      });
+    }
+  }
 
   void _optionSelected(String selection) {
-
+    assert(selection == "left" || selection == "right");
+    if (answerTime.tick == 0) {
+      return;
+    } //cancel button press if 1 second hasn't elapsed yet.
+    answerTime.cancel();
+    //TODO: award points based on time left.
     Option selectedOption = introScenario.options[1];
     if (selection == "left") {
       selectedOption = leftOption;
@@ -99,6 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _nextDialog() {
     debugPrint("Dialog Area Pressed.");
+    if (currentStatus == QuestionStatus.answering) return;
     setState(() {
       if (currentStatus == QuestionStatus.intro) {
         if (textList.length > 1) {
@@ -113,7 +149,8 @@ class _MyHomePageState extends State<MyHomePage> {
           leftOption = currentScenario.options[0];
           rightOption = currentScenario.options[1];
           currentStatus = QuestionStatus.answering;
-          //TODO: change to answer mode
+          secondsLeft = 10;
+          answerTime = Timer.periodic(const Duration(seconds: 1), timerTick);
         }
       }
       if (currentStatus == QuestionStatus.outro) {
@@ -186,31 +223,99 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  height: 50,
-                  child:DecoratedBox(
-                    decoration:BoxDecoration(
-                        color: Theme.of(context).colorScheme.inversePrimary),
-                        child:Text("Timer Area",style: TextStyle(color: Colors.black.withAlpha(100))),)
+                Stack(
+                  children: [
+                    Center(
+                      child: Icon(
+                        Icons.timer,
+                        color: Colors.black.withAlpha(40),
+                        size: 50,
+                      ),
+                    ),
+                    AnimatedOpacity(
+                      opacity: answerTime.isActive ? 1 : 0,
+                      duration: const Duration(seconds: 1),
+                      child: SizedBox(
+                        height: 50,
+                        width: double.infinity,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary),
+                          child: Center(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(seconds: 1),
+                                  height: 10,
+                                  color: secondsLeft > 6
+                                      ? Colors.green
+                                      : secondsLeft > 3
+                                          ? Colors.orange
+                                          : Colors.red,
+                                  width: MediaQuery.of(context).size.width *
+                                      (secondsLeft / 10),
+                                ),
+                                AnimatedScale(
+                                  duration: const Duration(milliseconds: 1000),
+                                  scale: answerTime.tick < 1
+                                      ? 2
+                                      : answerTime.tick < 5
+                                          ? 0.75
+                                          : 1,
+                                  child: Icon(
+                                    Icons.timer,
+                                    color: Colors.black.withAlpha(40),
+                                    size: 50,
+                                  ),
+                                ),
+                                Text(
+                                  secondsLeft.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 40,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(
-                    height: MediaQuery. of(context). size. height-330,
-                    child:DecoratedBox(
-                      decoration:BoxDecoration(
-                          color: Theme.of(context).colorScheme.tertiaryContainer),
-                      child:Text("Graphic Area",style: TextStyle(color: Colors.black.withAlpha(100))),)
-                ),
+                    height: MediaQuery.of(context).size.height - 330,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                          color:
+                              Theme.of(context).colorScheme.tertiaryContainer),
+                      child: Center(
+                        child: Text("Graphic Area",
+                            style:
+                                TextStyle(color: Colors.black.withAlpha(100))),
+                      ),
+                    )),
               ],
             ),
             Column(
               children: [
                 Visibility(
-                    visible: currentStatus != QuestionStatus.answering,
-                    child:  SizedBox(height: 100,width: double.infinity,child:DecoratedBox(
-                      decoration: BoxDecoration(),
-                    child: Text("Option Area",style: TextStyle(color: Colors.black.withAlpha(50)),)))),
-                Visibility(
-                  visible: currentStatus == QuestionStatus.answering,
+                    visible: false,
+                    child: SizedBox(
+                        height: 100,
+                        width: double.infinity,
+                        child: DecoratedBox(
+                            decoration: BoxDecoration(),
+                            child: Text(
+                              "Option Area",
+                              style:
+                                  TextStyle(color: Colors.black.withAlpha(50)),
+                            )))),
+                AnimatedOpacity(
+                  opacity: currentStatus == QuestionStatus.answering ? 1.0 : 0,
+                  duration: const Duration(milliseconds: 500),
                   child: SizedBox(
                       height: 100,
                       width: double.infinity,
@@ -219,22 +324,29 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                                onPressed: () => _optionSelected("left"),
-                                child: Text(
-                                  leftOption.optionText,
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.visible,
-                                ),),),
-
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => _optionSelected("right"),
-                                  child: Text(
-                                rightOption.optionText,
+                              onPressed:
+                                  currentStatus == QuestionStatus.answering
+                                      ? () => _optionSelected("left")
+                                      : null,
+                              child: Text(
+                                leftOption.optionText,
                                 textAlign: TextAlign.center,
                                 overflow: TextOverflow.visible,
-                              )),
+                              ),
                             ),
+                          ),
+                          Expanded(
+                            child: ElevatedButton(
+                                onPressed:
+                                    currentStatus == QuestionStatus.answering
+                                        ? () => _optionSelected("right")
+                                        : null,
+                                child: Text(
+                                  rightOption.optionText,
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.visible,
+                                )),
+                          ),
                         ],
                       )),
                 ),
