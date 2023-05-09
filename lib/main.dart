@@ -219,8 +219,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _flex() {
-    //TODO
+    setState(() {
+      //points-=100;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Center(child: Text("Weird flex, but ok😎"))));
   }
+
   void _switch() {
     setState(() {
       points -= 5;
@@ -230,7 +235,17 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _sendhelp() {}
+  void _sendhelp() {
+    setState(() {
+      points -= 75;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Center(
+            child: Text(
+      "Nice, we'll send your help to another player (or later, if you're currently offline)!",
+      textAlign: TextAlign.center,
+    ))));
+  }
 
   @override
   Widget build(BuildContext context) {
