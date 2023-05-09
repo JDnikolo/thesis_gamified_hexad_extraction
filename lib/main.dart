@@ -1,8 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'scenarios.dart';
-import 'resultScreen.dart';
+import 'result_screen.dart';
 import 'dart:async';
 
 enum QuestionStatus { intro, answering, outro }
@@ -108,7 +106,12 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     } //cancel button press if 1 second hasn't elapsed yet.
     answerTime.cancel();
-    //TODO: award points based on time left.
+    if (secondsLeft >= 5) {
+      points += 10;
+    } else if (secondsLeft > 0) {
+      points += 5;
+    }
+
     Option selectedOption = introScenario.options[1];
     if (selection == "left") {
       selectedOption = leftOption;
@@ -307,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         height: 100,
                         width: double.infinity,
                         child: DecoratedBox(
-                            decoration: BoxDecoration(),
+                            decoration: const BoxDecoration(),
                             child: Text(
                               "Option Area",
                               style:
