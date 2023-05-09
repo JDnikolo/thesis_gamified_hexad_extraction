@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'scenarios.dart';
 
 class ResultScreen extends StatefulWidget {
-  const ResultScreen({super.key, required Map<HexadType, double> this.results});
+  const ResultScreen({super.key, required this.results});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
