@@ -70,10 +70,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Option rightOption = introScenario.options[0];
 
   //timer and animation related variables
-  Timer answerTime = Timer(const Duration(microseconds: 0), () => {});
+  Timer answerTime = Timer(const Duration(microseconds: 1), () => {});
   int secondsLeft = 0;
-  //point related variables
-  int points = 0;
+  //point and power-up related variables
+  int points = 100;
+  bool retryActive = false;
+  bool timeExtended = false;
 
   //hexad results
   final Map<HexadType, double> hexadResults = {
@@ -81,9 +83,23 @@ class _MyHomePageState extends State<MyHomePage> {
   };
 
   void handleTimeout() {
-    List<String> selection = ["left", "right"];
-    selection.shuffle();
-    _optionSelected(selection.first);
+    if (!retryActive) {
+      List<String> selection = ["left", "right"];
+      selection.shuffle();
+      _optionSelected(selection.first);
+    } else {
+      retryActive = false;
+      allScenarios.add(currentScenario);
+      currentStatus = QuestionStatus.outro;
+      setState(() {
+        currentText = "Oops!";
+        textList = [
+          "Looks like you ran out of time, but you had a Retry ready.",
+          "We'll return to this question later.",
+          "Let's move on to the next one."
+        ];
+      });
+    }
   }
 
   void timerTick(Timer timer) {
@@ -102,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _optionSelected(String selection) {
     assert(selection == "left" || selection == "right");
-    if (answerTime.tick == 0) {
+    if (answerTime.tick < 2) {
       return;
     } //cancel button press if 1 second hasn't elapsed yet.
     answerTime.cancel();
@@ -111,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
     } else if (secondsLeft > 0) {
       points += 5;
     }
-
+    timeExtended = false;
     Option selectedOption = introScenario.options[1];
     if (selection == "left") {
       selectedOption = leftOption;
@@ -152,7 +168,11 @@ class _MyHomePageState extends State<MyHomePage> {
           leftOption = currentScenario.options[0];
           rightOption = currentScenario.options[1];
           currentStatus = QuestionStatus.answering;
-          secondsLeft = 10;
+          if (timeExtended) {
+            secondsLeft = 20;
+          } else {
+            secondsLeft = 10;
+          }
           answerTime = Timer.periodic(const Duration(seconds: 1), timerTick);
         }
       }
@@ -183,6 +203,35 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _timeplus() {
+    setState(() {
+      points -= 20;
+      secondsLeft += 10;
+      timeExtended = true;
+    });
+  }
+
+  void _retry() {
+    setState(() {
+      retryActive = true;
+      points -= 50;
+    });
+  }
+
+  void _flex() {
+    //TODO
+  }
+  void _switch() {
+    setState(() {
+      points -= 5;
+      Option temp = rightOption;
+      rightOption = leftOption;
+      leftOption = temp;
+    });
+  }
+
+  void _sendhelp() {}
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -200,6 +249,87 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+      ),
+      drawer: Drawer(
+        backgroundColor: const Color.fromRGBO(255, 255, 255, 0.1),
+        width: 100,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Points:\n$points",
+                textScaleFactor: 1.7,
+                textAlign: TextAlign.center,
+              ),
+              ElevatedButton(
+                onPressed: points >= 20 && !timeExtended ? _timeplus : null,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [Text("+"), Icon(Icons.hourglass_bottom)],
+                ),
+              ),
+              const Text(
+                "Time+:\n20p",
+                textAlign: TextAlign.center,
+              ),
+              ElevatedButton(
+                onPressed: points > 50 && !retryActive ? _retry : null,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [Text('+'), Icon(Icons.replay_outlined)],
+                ),
+              ),
+              const Text(
+                "Retry:\n50p",
+                textAlign: TextAlign.center,
+              ),
+              ElevatedButton(
+                onPressed: points >= 100 ? _flex : null,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [Icon(Icons.surfing)],
+                ),
+              ),
+              const Text(
+                "Flex:\n100p",
+                textAlign: TextAlign.center,
+              ),
+              ElevatedButton(
+                onPressed:
+                    points >= 5 && currentStatus == QuestionStatus.answering
+                        ? _switch
+                        : null,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [Icon(Icons.swap_horiz)],
+                ),
+              ),
+              const Text(
+                "Switch:\n5p",
+                textAlign: TextAlign.center,
+              ),
+              ElevatedButton(
+                onPressed: points >= 75 ? _sendhelp : null,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [Icon(Icons.local_hospital)],
+                ),
+              ),
+              const Text(
+                "Send Help:\n75p",
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
@@ -257,8 +387,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                       : secondsLeft > 3
                                           ? Colors.orange
                                           : Colors.red,
-                                  width: MediaQuery.of(context).size.width *
-                                      (secondsLeft / 10),
+                                  width: timeExtended
+                                      ? MediaQuery.of(context).size.width *
+                                          (secondsLeft / 20)
+                                      : MediaQuery.of(context).size.width *
+                                          (secondsLeft / 10),
                                 ),
                                 AnimatedScale(
                                   duration: const Duration(milliseconds: 1000),
