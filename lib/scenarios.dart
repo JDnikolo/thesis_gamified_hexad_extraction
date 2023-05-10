@@ -26,13 +26,11 @@ class Option {
   final List<String> optionSelectDialog;
   final HexadType primaryType;
   final double primaryTypeLoad;
-  final HexadType secondaryType;
-  final double secondaryTypeLoad;
+  final Map<HexadType, double> secondaryTypeLoads;
 
   Option(this.optionText, this.optionSelectDialog, this.primaryType,
-      this.primaryTypeLoad, this.secondaryType, this.secondaryTypeLoad) {
+      this.primaryTypeLoad, this.secondaryTypeLoads) {
     assert(optionSelectDialog.isNotEmpty);
-    assert(!primaryTypeLoad.isNegative && !secondaryTypeLoad.isNegative);
   }
 }
 
@@ -56,8 +54,7 @@ final Scenario introScenario = Scenario(
         ],
         HexadType.achiever,
         0.0,
-        HexadType.player,
-        0.0),
+        {}),
     Option(
         "Sure, ok...",
         [
@@ -66,13 +63,14 @@ final Scenario introScenario = Scenario(
         ],
         HexadType.disruptor,
         0.0,
-        HexadType.freeSpirit,
-        0.0)
+        {})
   ],
 );
-
+//TODO: add intro phrases to first 5 scenarios. Possibly shorten them a bit.
 final List<Scenario> allScenarios = [
+  //
   //Player-Achiever
+  //
   Scenario(
     [
       "Hey, looks like there's a gem at the top of that slope.",
@@ -91,8 +89,7 @@ final List<Scenario> allScenarios = [
           ],
           player,
           1.0,
-          player,
-          0.0),
+          {}),
       Option(
           "Master climbing the slope",
           [
@@ -103,11 +100,12 @@ final List<Scenario> allScenarios = [
           ],
           achiever,
           1.0,
-          achiever,
-          0.0)
+          {})
     ],
   ),
+  //
   //Player-Philanthropist
+  //
   Scenario([
     "Alright, you've almost made it to the next camp.",
     "But what's this on the ground?",
@@ -126,8 +124,7 @@ final List<Scenario> allScenarios = [
         ],
         philanthropist,
         1.0,
-        socializer,
-        0.0),
+        {}),
     Option(
         "Trade it for a reward.",
         [
@@ -136,10 +133,11 @@ final List<Scenario> allScenarios = [
         ],
         player,
         1.0,
-        disruptor,
-        0.0)
+        {})
   ]),
+  //
   //Player-Socializer
+  //
   Scenario([
     "What's this?",
     "A few people have set up camp outside this little cave.",
@@ -159,8 +157,7 @@ final List<Scenario> allScenarios = [
         ],
         player,
         1.0,
-        achiever,
-        0.0),
+        {}),
     Option(
         "Socialize with the other climbers",
         [
@@ -170,10 +167,11 @@ final List<Scenario> allScenarios = [
         ],
         socializer,
         1.0,
-        socializer,
-        0.0)
+        {})
   ]),
+  //
   //Player-Disruptor
+  //
   Scenario([
     "Look, you're approaching a camp site.",
     "Gotta decide what to do with that gem you found!",
@@ -189,8 +187,7 @@ final List<Scenario> allScenarios = [
         ],
         disruptor,
         1.0,
-        disruptor,
-        0.0),
+        {}),
     Option(
         "Trade it for a reward",
         [
@@ -199,45 +196,382 @@ final List<Scenario> allScenarios = [
         ],
         player,
         1.0,
-        player,
-        0.0)
+        {})
   ]),
+  //
   //Player-FreeSpirit
-  Scenario([
-    "Hey, look, there's a berry bush between those trees.",
-    "It's loaded with berries!",
-    "You could probably go on and explore a couple extra days with those without resupplying.",
-    "Trading them at the camp might fetch something good as well!",
-    "What do you say?"
-  ], [
-    Option(
-        "Trade the berries for valuables",
-        [
-          "The other climbers will probably enjoy those.",
-          "Much like you will enjoy the extra goods you'll get for them!"
-        ],
-        player,
-        1.0,
-        player,
-        0.0),
-    Option(
-        "Use them to explore independently for longer",
-        [
-          "Nice, let's see how far these will get you.",
-          "Now, off the beaten path!"
-        ],
-        freeSpirit,
-        1.0,
-        freeSpirit,
-        0.0)
-  ]),
+  //
+  Scenario(
+    [
+      "Hey, look, there's a berry bush between those trees.",
+      "It's loaded with berries!",
+      "You could probably go on and explore a couple extra days with those without resupplying.",
+      "Trading them at the camp might fetch something good as well!",
+      "What do you say?"
+    ],
+    [
+      Option(
+          "Trade the berries for valuables",
+          [
+            "The other climbers will probably enjoy those.",
+            "Much like you will enjoy the extra goods you'll get for them!"
+          ],
+          player,
+          1.0,
+          {}),
+      Option(
+          "Use them to explore independently for longer",
+          [
+            "Nice, let's see how far these will get you.",
+            "Now, off the beaten path!"
+          ],
+          freeSpirit,
+          1.0,
+          {})
+    ],
+  ),
+  //
   //Philanthropist-Socializer
-  Scenario([
-    "",
-    "",
-    "",
-  ], [
-    Option("", [""], philanthropist, 1.0, philanthropist, 0.0),
-    Option("", [""], socializer, 1.0, socializer, 0.0)
-  ])
+  //
+  Scenario(
+    [
+      "Alright, you've found another campsite.",
+      "Looks like people are resting and talking around the fires.",
+      "A few groups are repairing others' broken equipment as well.",
+      "Who would you rather join?"
+    ],
+    [
+      Option(
+          "Socialize and rest around the fire",
+          [
+            "Nothing helps you rest quite like company around the fire!",
+            "Let's see if the others have any good advice to share."
+          ],
+          socializer,
+          1.0,
+          {}),
+      Option(
+          "Help repair the climbers' gear",
+          [
+            "Can't have people relying on faulty gear, right?",
+            "Let's see what you can help repair before resting."
+          ],
+          philanthropist,
+          1.0,
+          {}),
+    ],
+  ),
+  //
+  //Philanthropist-Disruptor
+  //
+  Scenario(
+    [
+      "Ok, you keep moving on up the trail along a group.",
+      "You join a few climbers discussing techniques they've used so far.",
+      "You're quite skilled in climbing yourself, what would you rather do?",
+    ],
+    [
+      Option(
+        "Share some tips of your own",
+        [
+          "They appreciate your input!",
+          "Hopefully they will remember it when they need it."
+        ],
+        philanthropist,
+        1.0,
+        {}, //consider: player?
+      ),
+      Option(
+        "Boast about your skills",
+        [
+          "Your taunts have riled them up!",
+          "\"You sure talk big, let's see if you can climb the climb!\"",
+          "Looks like you'll have to prove yourself up ahead!"
+        ],
+        disruptor,
+        1.0,
+        {}, //consider: achiever
+      ),
+    ],
+  ),
+  //
+  //Philanthropist-Free Spirit
+  //
+  Scenario(
+    [
+      "Alright, let's see what's next.",
+      "A group you're travelling along is planning their route in advance.",
+      "You could join them and help them plan, I'm sure you have a couple of points?",
+      "You can also keep going independently and make it on your own.",
+      "What do you prefer?"
+    ],
+    [
+      Option(
+        "Help them plan a route",
+        [
+          "Time to put your heads together.",
+          "Let's see if there's a good route for a group!"
+        ],
+        philanthropist,
+        1.0,
+        {}, //consider: socializer
+      ),
+      Option(
+        "Follow your own path",
+        [
+          "Might as well leave them behind for now.",
+          "You'll be a lot more flexible on your own!",
+          "Let's see where your road takes you.",
+        ],
+        freeSpirit,
+        1.0,
+        {}, //consider: achiever
+      ),
+    ],
+  ),
+  //
+  //Philanthropist-Achiever
+  //
+  Scenario(
+    [
+      "Let's see what else is waiting for you.",
+      "Someone's kicking a lot of dust in the air up ahead.",
+      "A group is carving a path through a challenging part of the trail.",
+      "Wanna join and help them out?",
+      "Or do you wanna brave the challenging part before it is made easier?",
+      "What will it be?",
+    ],
+    [
+      Option(
+        "Help them make the path",
+        [
+          "This path won't make itself!",
+          "This will be hard, but it will make things easier for everyone else!"
+        ],
+        philanthropist,
+        1.0,
+        {}, //consider:socializer, player
+      ),
+      Option(
+        "Take on the challenging trail",
+        [
+          "Can't miss out on this chance!",
+          "The climb will be hard, no doubt about it.",
+          "But you can boast about how you made it later!",
+        ],
+        achiever,
+        1.0,
+        {}, //consider: achiever, free spirit
+      ),
+    ],
+  ),
+  //
+  //Socializer-Disruptor
+  //
+  Scenario(
+    [
+      "Up next, on the next scenario:",
+      "You see a sign ahead, with rules on how to proceed on the trail.",
+      "Looks like people are following the instructions, forming groups further up.",
+      "It's just a sign though, it can't tell you what to do.",
+      "So, uh, what will you do?"
+    ],
+    [
+      Option(
+        "Join the groups",
+        [
+          "I guess the sign is probably there for a reason.",
+          "Even if that reason is just to make some new friends!",
+        ],
+        socializer,
+        1.0,
+        {}, //philanthropist?//player?
+      ),
+      Option(
+        "Don't follow the sign's rules",
+        [
+          "Who cares about the sign anyway?",
+          "Not you!",
+          "Let's see if there are any more rebels out there.",
+        ],
+        disruptor,
+        1.0,
+        {}, //consider: free spirit, achiever?
+      ),
+    ],
+  ),
+  //
+  //Socializer-Free Spirit
+  //
+  Scenario(
+    [
+      "On to the next question!",
+      "There's a team of climbers forming up ahead.",
+      "Wanna join them, have some company for a while?",
+      "You can also just slip past them and go solo.",
+      "What do you say?"
+    ],
+    [
+      Option(
+        "Join the team",
+        [
+          "Many heads are better than one, right?",
+          "Either way, let's see what they have to say."
+        ],
+        socializer,
+        1.0,
+        {},
+      ),
+      Option(
+        "Go solo",
+        [
+          "You ain't slowing down for anyone.",
+          "Who knows, you might even find something interesting while going around them.",
+          "Just make sure to stay quiet!"
+        ],
+        freeSpirit,
+        1.0,
+        {}, //consider: disruptor?
+      ),
+    ],
+  ),
+  //
+  //Socializer-Achiever
+  //
+  Scenario(
+    [
+      "Onwards then, to the next scenario.",
+      "A few climbers are practicing their wall climbing nearby.",
+      "You could master a few moves here!",
+      "Or just lounge around, see how everyone here is doing.",
+      "What will it be?",
+    ],
+    [
+      Option(
+        "Rest and socialize",
+        [
+          "Might as well have a chat,",
+          "Gotta save some energy for the actual climb!",
+        ],
+        socializer,
+        1.0,
+        {}, //consider: free spirit?
+      ),
+      Option(
+        "Master wall climbing",
+        [
+          "The climb can wait, mastering this wall comes first!",
+          "And you get to boast straight away, with all the people around!"
+        ],
+        achiever,
+        1.0,
+        {}, //player?
+      ),
+    ],
+  ),
+  //
+  //Disruptor-Free Spirit
+  //
+  Scenario(
+    [
+      "Let's see what's next.",
+      "A heated disagreement has started in your group regarding wall climbing techniques.",
+      "You can break off and follow a different path if you don't want to deal with it.",
+      "But they seem to be in just the right mood for some provoking!",
+      "What will you do?"
+    ],
+    [
+      Option(
+        "Provoke them",
+        [
+          "Might as well pour gas in the fire right?",
+          "Just don't do that in an actual fire, ok?",
+          "Forest fires are no joke!"
+        ],
+        disruptor,
+        1.0,
+        {}, //achiever?socializer?
+      ),
+      Option(
+        "Go around",
+        [
+          "You all already have the mountain to deal with.",
+          "Can't be dealing with fights as well.",
+        ],
+        freeSpirit,
+        1.0,
+        {},
+      ),
+    ],
+  ),
+  //
+  //Disruptor-Achiever
+  //
+  Scenario(
+    [
+      "Pay attention, there's another question coming!",
+      "A group of climbers is challenging others to climb a certain wall.",
+      "They are not letting people go on if they don't.",
+      "You can probably complete their challenge, no sweat.",
+      "But who are they to not let people pass?",
+      "What will you do?"
+    ],
+    [
+      Option(
+        "Overcome their challenge",
+        [
+          "Well, there's probably a reason they're doing this.",
+          "Show them this isn't enough to stop you!"
+        ],
+        achiever,
+        1.0,
+        {}, //player?
+      ),
+      Option(
+        "Disregard their rules,\npass anyway",
+        [
+          "Yeah, they can't hold you here like this!",
+          "Why are they stopping people here anyway?"
+        ],
+        disruptor,
+        1.0,
+        {}, //free spirit?
+      ),
+    ],
+  ),
+  //
+  //Free Spirit-Achiever
+  //
+  Scenario(
+    [
+      "Ok, there should be another question here somewhere...",
+      "Looks like this path ends with a very hard wall climb.",
+      "No wonder you didn't see many people along it.",
+      "Do you think you're up for it?",
+      "You can always look for another way, off the beaten path.",
+      "What's it gonna be?"
+    ],
+    [
+      Option(
+        "Explore for another way up",
+        [
+          "There's gotta be another way around.",
+          "Who knows what you'll find out there!",
+        ],
+        freeSpirit,
+        1.0,
+        {}, //player?
+      ),
+      Option(
+        "Overcome this difficult obstacle",
+        [
+          "Yeah, might as well have a story to tell when you reach the next camp!",
+          "Good luck!"
+        ],
+        achiever,
+        1.0,
+        {}, //player?
+      ),
+    ],
+  ),
 ];

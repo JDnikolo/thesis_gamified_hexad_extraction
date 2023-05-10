@@ -138,10 +138,12 @@ class _MyHomePageState extends State<MyHomePage> {
     double temp = hexadResults[selectedOption.primaryType] ?? 0.0;
     temp += selectedOption.primaryTypeLoad;
     hexadResults[selectedOption.primaryType] = temp;
+    for (var typeLoad in selectedOption.secondaryTypeLoads.entries) {
+      temp = hexadResults[typeLoad.key] ?? 0.0;
+      temp += typeLoad.value;
+      hexadResults[typeLoad.key] = temp;
+    }
 
-    temp = hexadResults[selectedOption.secondaryType] ?? 0.0;
-    temp += selectedOption.secondaryTypeLoad;
-    hexadResults[selectedOption.secondaryType] = temp;
     debugPrint(hexadResults.entries.toString());
     setState(() {
       currentStatus = QuestionStatus.outro;
@@ -269,7 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: const Color.fromRGBO(255, 255, 255, 0.1),
         width: 100,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
