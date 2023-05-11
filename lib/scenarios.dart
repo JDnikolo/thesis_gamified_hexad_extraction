@@ -66,26 +66,24 @@ final Scenario introScenario = Scenario(
         {})
   ],
 );
-//TODO: add intro phrases to first 5 scenarios. Possibly shorten them a bit.
 final List<Scenario> allScenarios = [
   //
   //Player-Achiever
   //
   Scenario(
     [
-      "Hey, looks like there's a gem at the top of that slope.",
-      "The climb up to it looks really challenging!",
-      "Will you just climb it once and get the gem?",
-      "Or would you rather stay here for a while and master the climb?",
-      "What would you do?",
+      "Moving on, here's what's happening:",
+      "Looks like there's a gem at the top of that challenging wall!",
+      "Will you climb it once and get the gem?",
+      "Or would you rather stay here for a while and master climbing this difficult wall?",
+      "What will you do?",
     ],
     [
       Option(
           "Get the gem for a reward",
           [
-            "Nice, you made it.",
-            "The gem shines brilliantly!",
-            "It should fetch quite the reward at one of the camps.",
+            "No need to tire yourself out here, getting the gem is quite enough.",
+            "It should fetch quite the reward at one of the camps!",
           ],
           player,
           1.0,
@@ -96,7 +94,6 @@ final List<Scenario> allScenarios = [
             "(...after a little while...)",
             "Looks like you have the hang of it now!",
             "Your climbing skills are getting better by the minute.",
-            "Keep it up!",
           ],
           achiever,
           1.0,
@@ -107,16 +104,16 @@ final List<Scenario> allScenarios = [
   //Player-Philanthropist
   //
   Scenario([
-    "Alright, you've almost made it to the next camp.",
+    "Ok, let's continue.",
+    "You've almost made it to the next camp.",
     "But what's this on the ground?",
-    "Looks like someone dropped one of their tools.",
-    "It seems pretty high-grade!",
-    "Will you look around for the owner and return it?",
+    "You see a high-quality tool left behind, one you already have.",
+    "Would you like to give it away to someone at the camp?",
     "You could also trade it for something valuable.",
     "What will it be?"
   ], [
     Option(
-        "Help someone by returning the tool.",
+        "Give the tool away.",
         [
           "Looks like they were looking for it.",
           "They look very grateful that you returned their tool!",
@@ -139,7 +136,7 @@ final List<Scenario> allScenarios = [
   //Player-Socializer
   //
   Scenario([
-    "What's this?",
+    "Moving on, what's this?",
     "A few people have set up camp outside this little cave.",
     "Looks like they're mining for gems while they're here.",
     "Wanna join in the hunt for a gem of your own?",
@@ -153,7 +150,6 @@ final List<Scenario> allScenarios = [
           "...",
           "Over there, you can see something shiny!",
           "Looks like you've found your gem!",
-          "Way to go!"
         ],
         player,
         1.0,
@@ -173,8 +169,9 @@ final List<Scenario> allScenarios = [
   //Player-Disruptor
   //
   Scenario([
+    "Ok, on to the next one.",
     "Look, you're approaching a camp site.",
-    "Gotta decide what to do with that gem you found!",
+    "Gotta decide what to do with that gem you found on the way!",
     "Are you gonna trade it for something else straight away?",
     "Or will you keep it and boast with it to the other climbers for a while?",
     "What will you do?"
@@ -203,6 +200,7 @@ final List<Scenario> allScenarios = [
   //
   Scenario(
     [
+      "Let's see what's up next.",
       "Hey, look, there's a berry bush between those trees.",
       "It's loaded with berries!",
       "You could probably go on and explore a couple extra days with those without resupplying.",
@@ -211,7 +209,7 @@ final List<Scenario> allScenarios = [
     ],
     [
       Option(
-          "Trade the berries for valuables",
+          "Trade the berries for a reward",
           [
             "The other climbers will probably enjoy those.",
             "Much like you will enjoy the extra goods you'll get for them!"
@@ -235,14 +233,15 @@ final List<Scenario> allScenarios = [
   //
   Scenario(
     [
-      "Alright, you've found another campsite.",
-      "Looks like people are resting and talking around the fires.",
-      "A few groups are repairing others' broken equipment as well.",
+      "Moving right along!",
+      "You've reached another campsite.",
+      "Looks like people are resting, talking around the campfires.",
+      "A few groups are repairing others' broken equipment while they're resting.",
       "Who would you rather join?"
     ],
     [
       Option(
-          "Socialize and rest around the fire",
+          "Socialize around a fire",
           [
             "Nothing helps you rest quite like company around the fire!",
             "Let's see if the others have any good advice to share."
@@ -266,7 +265,8 @@ final List<Scenario> allScenarios = [
   //
   Scenario(
     [
-      "Ok, you keep moving on up the trail along a group.",
+      "Let's see what's next, shall we?",
+      "You're moving on up the trail along with a group.",
       "You join a few climbers discussing techniques they've used so far.",
       "You're quite skilled in climbing yourself, what would you rather do?",
     ],
