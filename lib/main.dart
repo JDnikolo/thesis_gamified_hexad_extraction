@@ -1,7 +1,9 @@
+import 'dart:math';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'scenarios.dart';
 import 'result_screen.dart';
-import 'dart:async';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 enum QuestionStatus { intro, answering, outro }
 
@@ -59,7 +61,8 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
   //scenario handling and text related variables
   List<Scenario> scenarios = allScenarios;
   Scenario currentScenario = introScenario;
@@ -70,10 +73,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Option rightOption = introScenario.options[0];
 
   //timer and animation related variables
-  Timer answerTime = Timer(const Duration(microseconds: 1), () => {});
+  Timer? answerTime;
   int secondsLeft = 0;
+  bool textAnimationCompleted = true;
   //point and power-up related variables
-  int points = 100;
+  int points = 0;
   bool retryActive = false;
   bool timeExtended = false;
 
@@ -106,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (timer.tick < 4) return;
     if (secondsLeft == 0) {
       setState(() {
-        answerTime.cancel();
+        answerTime?.cancel();
         handleTimeout();
       });
     } else {
@@ -116,12 +120,12 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _optionSelected(String selection) {
+  void _optionSelected(String selection) async {
     assert(selection == "left" || selection == "right");
-    if (answerTime.tick < 2) {
+    if (answerTime!.tick < 2) {
       return;
     } //cancel button press if 1 second hasn't elapsed yet.
-    answerTime.cancel();
+    answerTime?.cancel();
     if (secondsLeft >= 5) {
       points += 10;
     } else if (secondsLeft > 0) {
@@ -155,7 +159,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _nextDialog() {
     debugPrint("Dialog Area Pressed.");
-    if (currentStatus == QuestionStatus.answering) return;
+    if (currentStatus == QuestionStatus.answering ||
+        textAnimationCompleted == false) return;
+    textAnimationCompleted = false;
     setState(() {
       if (currentStatus == QuestionStatus.intro) {
         if (textList.length > 1) {
@@ -222,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _flex() {
     setState(() {
-      //points-=100;
+      points -= 100;
     });
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Center(child: Text("Weird flex, but ok😎"))));
@@ -383,7 +389,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     AnimatedOpacity(
-                      opacity: answerTime.isActive ? 1 : 0,
+                      opacity:
+                          answerTime != null && answerTime!.isActive ? 1 : 0,
                       duration: const Duration(seconds: 1),
                       child: SizedBox(
                         height: 50,
@@ -412,11 +419,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                                 AnimatedScale(
                                   duration: const Duration(milliseconds: 1000),
-                                  scale: answerTime.tick < 1
-                                      ? 2
-                                      : answerTime.tick < 5
-                                          ? 0.75
-                                          : 1,
+                                  scale:
+                                      answerTime != null && answerTime!.tick < 1
+                                          ? 2
+                                          : answerTime != null &&
+                                                  answerTime!.tick < 5
+                                              ? 0.75
+                                              : 1,
                                   child: Icon(
                                     Icons.timer,
                                     color: Colors.black.withAlpha(40),
@@ -474,6 +483,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       width: double.infinity,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(
                             child: ElevatedButton(
@@ -485,6 +495,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 leftOption.optionText,
                                 textAlign: TextAlign.center,
                                 overflow: TextOverflow.visible,
+                                style: const TextStyle(fontSize: 18),
                               ),
                             ),
                           ),
@@ -498,6 +509,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   rightOption.optionText,
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.visible,
+                                  style: const TextStyle(fontSize: 18),
                                 )),
                           ),
                         ],
@@ -513,11 +525,21 @@ class _MyHomePageState extends State<MyHomePage> {
                             color:
                                 Theme.of(context).colorScheme.inversePrimary),
                         child: Center(
-                          child: Text(
-                            currentText,
-                            textAlign: TextAlign.center,
-                          ),
-                        )),
+                            child: AnimatedTextKit(
+                          key: ValueKey(currentText),
+                          animatedTexts: [
+                            TyperAnimatedText(
+                              currentText,
+                              textAlign: TextAlign.center,
+                              textStyle: const TextStyle(fontSize: 23),
+                              speed: const Duration(milliseconds: 25),
+                            )
+                          ],
+                          onFinished: () => {textAnimationCompleted = true},
+                          onTap: _nextDialog,
+                          isRepeatingAnimation: false,
+                          displayFullTextOnTap: true,
+                        ))),
                   ),
                 ),
               ],
