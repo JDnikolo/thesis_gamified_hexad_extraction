@@ -1,11 +1,14 @@
-import 'dart:math';
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'scenarios.dart';
 import 'result_screen.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:flutter_flip_card/flutter_flip_card.dart';
 
 enum QuestionStatus { intro, answering, outro }
+
+List<Offset> climbPointOffsets = [];
 
 void main() {
   runApp(const MyApp());
@@ -33,6 +36,30 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+class PathPainter extends CustomPainter {
+  int lastLength = climbPointOffsets.length;
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (climbPointOffsets.isEmpty || climbPointOffsets.length == 1) return;
+    lastLength = climbPointOffsets.length;
+    final paint = Paint()
+      ..color = Colors.redAccent
+      ..strokeWidth = 2;
+    Offset p1 = climbPointOffsets.first;
+    Offset p2;
+    for (int i = 1; i < climbPointOffsets.length; i++) {
+      p2 = climbPointOffsets[i];
+      canvas.drawLine(p1, p2, paint);
+      p1 = p2;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return climbPointOffsets.length == lastLength;
+  }
+}
+
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
   //scenario handling and text related variables
@@ -48,6 +75,10 @@ class _MyHomePageState extends State<MyHomePage>
   Timer? answerTime;
   int secondsLeft = 0;
   bool textAnimationCompleted = true;
+  final FlipCardController flipController = FlipCardController();
+  double climberIconOrientation = 1.0;
+  List<Point<double>> climbPoints = [];
+  double distanceFromBottom = 0, distanceFromLeft = 32;
 
   //point and power-up related variables
   int points = 0;
@@ -130,19 +161,21 @@ class _MyHomePageState extends State<MyHomePage>
     });
   }
 
-  void _nextDialog() {
+  void _nextDialog() async {
     debugPrint("Dialog Area Pressed.");
     if (currentStatus == QuestionStatus.answering ||
         textAnimationCompleted == false) return;
     textAnimationCompleted = false;
-    setState(() {
-      if (currentStatus == QuestionStatus.intro) {
-        if (textList.length > 1) {
-          debugPrint("Advancing Dialog.");
+    if (currentStatus == QuestionStatus.intro) {
+      if (textList.length > 1) {
+        debugPrint("Advancing Dialog.");
+        setState(() {
           currentText = textList.first;
-          textList.removeAt(0);
-        } else {
-          debugPrint("Advancing Dialog and moving to answering mode.");
+        });
+        textList.removeAt(0);
+      } else {
+        debugPrint("Advancing Dialog and moving to answering mode.");
+        setState(() {
           currentText = textList.first;
           textList.removeAt(0);
           currentScenario.options.shuffle();
@@ -155,33 +188,77 @@ class _MyHomePageState extends State<MyHomePage>
             secondsLeft = 10;
           }
           answerTime = Timer.periodic(const Duration(seconds: 1), timerTick);
-        }
+        });
       }
-      if (currentStatus == QuestionStatus.outro) {
-        if (textList.isNotEmpty) {
-          debugPrint("Advancing Dialog.");
+    }
+    if (currentStatus == QuestionStatus.outro) {
+      if (textList.isNotEmpty) {
+        debugPrint("Advancing Dialog.");
+        setState(() {
           currentText = textList.first;
-          textList.removeAt(0);
-        } else {
-          debugPrint("Moving to intro mode of next question.");
-          if (scenarios.isNotEmpty) {
-            scenarios.shuffle();
+        });
+        textList.removeAt(0);
+      } else {
+        debugPrint("Moving to intro mode of next question.");
+        setState(() {
+          currentText = "";
+        });
+        flipController.flipcard();
+        await Future.delayed(const Duration(seconds: 1));
+        moveClimberIcon();
+        await Future.delayed(const Duration(milliseconds: 1500));
+        scenarios.shuffle();
+        if (scenarios.isNotEmpty) {
+          setState(() {
             currentScenario = scenarios.first;
             textList = currentScenario.introDialog;
             scenarios.removeAt(0);
             currentText = textList.first;
             textList.removeAt(0);
             currentStatus = QuestionStatus.intro;
-          } else {
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ResultScreen(results: hexadResults)),
-                (route) => false);
-          }
+          });
+        } else {
+          //TODO: add outro scenario
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ResultScreen(results: hexadResults)),
+              (route) => false);
         }
+        flipController.flipcard();
+        await Future.delayed(const Duration(seconds: 1));
       }
-    });
+    }
+  }
+
+  void moveClimberIcon() async {
+    double newLeft;
+    if (scenarios.isNotEmpty) {
+      distanceFromBottom += 13;
+      newLeft = distanceFromLeft + Random().nextInt(200) - 100;
+      if (newLeft < (distanceFromBottom + 50) / 1.6) {
+        newLeft = (distanceFromBottom + 50) / 1.6;
+      }
+      if (newLeft > (distanceFromBottom - 492) / -1.6) {
+        newLeft = (distanceFromBottom - 492) / -1.6;
+      }
+      if (distanceFromLeft > newLeft) {
+        climberIconOrientation = -1.0;
+      } else {
+        climberIconOrientation = 1.0;
+      }
+      distanceFromLeft = newLeft;
+      climbPoints.add(Point<double>(distanceFromLeft, distanceFromBottom));
+      climbPointOffsets.add(Offset(distanceFromLeft + 10,
+          (MediaQuery.of(context).size.height - 510) - distanceFromBottom + 5));
+    } else {
+      distanceFromBottom = 220;
+      distanceFromLeft = 170;
+      climbPointOffsets.add(Offset(distanceFromLeft,
+          (MediaQuery.of(context).size.height - 510) - distanceFromBottom));
+    }
+
+    setState(() {});
   }
 
   void _timeplus() {
@@ -395,7 +472,53 @@ class _MyHomePageState extends State<MyHomePage>
                     ),
                   ],
                 ),
-                SizedBox(
+                FlipCard(
+                  rotateSide: RotateSide.left,
+                  onTapFlipping: false,
+                  axis: FlipAxis.vertical,
+                  controller: flipController,
+                  backWidget: SizedBox(
+                    height: MediaQuery.of(context).size.height - 330,
+                    child: Center(
+                      child: Stack(children: [
+                        Image.asset(
+                          "images/mountain.png",
+                        ),
+                        const Positioned(
+                          bottom: 225,
+                          left: 180,
+                          child:
+                              Icon(Icons.flag, color: Colors.orange, size: 30),
+                        ),
+                        CustomPaint(
+                          painter: PathPainter(),
+                        ),
+                        for (Point<double> point in climbPoints)
+                          Positioned(
+                            left: point.x + 5,
+                            bottom: point.y - 5,
+                            child: const Icon(
+                              Icons.circle,
+                              color: Colors.red,
+                              size: 10,
+                            ),
+                          ),
+                        AnimatedPositioned(
+                          bottom: distanceFromBottom,
+                          left: distanceFromLeft,
+                          duration: const Duration(milliseconds: 500),
+                          child: Transform.scale(
+                            scaleX: climberIconOrientation,
+                            child: const Icon(
+                              Icons.hiking_rounded,
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
+                  frontWidget: SizedBox(
                     height: MediaQuery.of(context).size.height - 330,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
@@ -406,7 +529,9 @@ class _MyHomePageState extends State<MyHomePage>
                             style:
                                 TextStyle(color: Colors.black.withAlpha(100))),
                       ),
-                    )),
+                    ),
+                  ),
+                ),
               ],
             ),
             Column(
@@ -483,7 +608,9 @@ class _MyHomePageState extends State<MyHomePage>
                               speed: const Duration(milliseconds: 25),
                             )
                           ],
-                          onFinished: () => {textAnimationCompleted = true},
+                          onFinished: () {
+                            textAnimationCompleted = true;
+                          },
                           onTap: _nextDialog,
                           isRepeatingAnimation: false,
                           displayFullTextOnTap: true,
