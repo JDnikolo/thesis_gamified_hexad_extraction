@@ -1,6 +1,5 @@
 import 'scenarios.dart';
 
-//IDEA: reduce SFV on highly correlated types?
 double sfv = 0.5;
 final List<Scenario> allScenarios = [
   //
