@@ -1,0 +1,5 @@
+setup.py
+GamificationRL.egg-info/PKG-INFO
+GamificationRL.egg-info/SOURCES.txt
+GamificationRL.egg-info/dependency_links.txt
+GamificationRL.egg-info/top_level.txt
