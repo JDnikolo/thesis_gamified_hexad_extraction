@@ -8,23 +8,27 @@ from GamificationRL.envs.gamification_elements import (
 
 class GamificationPreferenceEnv(gym.Env):
     metadata = {"render_modes": ["ansi"]}
-    pref_history = dict()
+    pref_history = {}
     user_answer = None
-    hexad_adjusted = dict()
+    hexad_adjusted = {}
 
     def __init__(
         self,
-        hexad_load:dict,
+        hexad_load: dict,
         render_mode=None,
         gamification_elements=None,
         individual_modifications: dict = None,
         repetition_penalty: tuple = (100, 50),
         use_fatigue=False,
+        nothing_reward=75,
+        fatigue_reduction=0.05,
+        fatigue_replenish=0.0125,
         seed=None,
     ):
         self.seed = seed
         self.ge = dict([(elem.name, elem) for elem in gamification_elements])
         self.ge["Nothing"] = nothing
+        self.nothing_reward = nothing_reward
 
         self.penalty = repetition_penalty
 
@@ -55,6 +59,8 @@ class GamificationPreferenceEnv(gym.Env):
         self.action_to_ge = {}
         self.ge_to_action = {}
         self.fatigue_enabled = use_fatigue
+        self.f_rd = fatigue_reduction
+        self.f_rp = fatigue_replenish
         self.fatigue = {}
         i = 1
         for name, element in self.ge.items():
@@ -90,9 +96,10 @@ class GamificationPreferenceEnv(gym.Env):
         return self._history
 
     def _get_info(self):
-        return {"fatigue": self.fatigue,
-                "preference": self.hexad_preference,
-                }
+        return {
+            "fatigue": self.fatigue,
+            "preference": self.hexad_preference,
+        }
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -120,12 +127,16 @@ class GamificationPreferenceEnv(gym.Env):
         ge = self.ge[ge_name]
         hex_load = self.ge[ge_name].loads
         reward = 0
-        for hex_type, value in hex_load.items():
-            reward += self.hexad_adjusted[hex_type] * value
+
+        if ge_name == "Nothing":
+            reward = self.nothing_reward
+        else:
+            for hex_type, value in hex_load.items():
+                reward += self.hexad_adjusted[hex_type] * value
 
         if action == self._history[0] and action != self.ge_to_action["Nothing"]:
             reward -= self.penalty[0]
-        if action == self._history[1] and action != self.ge_to_action["Nothing"]:
+        if action == self._history[1]:  # and action != self.ge_to_action["Nothing"]
             reward -= self.penalty[1]
 
         if ge_name in self.ge_mods:
@@ -138,28 +149,26 @@ class GamificationPreferenceEnv(gym.Env):
 
         if self.user_answer == "accept" and self.pref_enabled[ge.type]:
             pref = self.hexad_preference[ge.type]
-            load = self.hexad_adjusted[ge.type]
-            if load != max(list(self.hexad_adjusted.values())):
-                pref += 0.2 if pref < 1.0 else 0.1 if pref < 1.25 else 0.05
-                if pref > 1.7:
-                    pref = 1.7
-                self.hexad_preference[ge.type] = pref
+            pref += 0.2 if pref < 1.0 else 0.1 if pref < 1.25 else 0.05
+            pref=min(pref,1.7)
+            self.hexad_preference[ge.type] = pref
 
         if self.user_answer == "decline" and self.pref_enabled[ge.type]:
             pref = self.hexad_preference[ge.type]
             pref -= 0.1 if pref < 1.0 else 0.2 if pref < 1.25 else 0.2
-            if pref < 0.1:
-                pref = 0.1
+            pref=max(pref,0.1)
             self.hexad_preference[ge.type] = pref
 
         if self.user_answer is not None and self.fatigue_enabled:
             for elem, fatigue in self.fatigue.items():
                 new_fatigue = fatigue
-                new_fatigue += 0.01 if (elem != ge_name or elem == "Nothing") else -0.1
-                if new_fatigue > 1.0:
-                    new_fatigue = 1.0
-                if new_fatigue < 0.1:
-                    new_fatigue = 0.1
+                new_fatigue += (
+                    self.f_rp
+                    if (elem != ge_name or elem == "Nothing")
+                    else -1 * self.f_rd
+                )
+                new_fatigue = min(new_fatigue, 1)
+                new_fatigue = max(new_fatigue, 0.1)
                 self.fatigue[elem] = new_fatigue
             self.user_answer = None
         self._calc_adjusted()
@@ -167,7 +176,6 @@ class GamificationPreferenceEnv(gym.Env):
         self._history = (self._history[1], action)
         obs = self._get_obs()
         info = self._get_info()
-
         return obs, reward, False, False, info
 
     def _calc_adjusted(self):
