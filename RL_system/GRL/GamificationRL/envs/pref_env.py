@@ -34,12 +34,12 @@ class GamificationPreferenceEnv(gym.Env):
 
         self.hexad_type = hexad_load
         self.hexad_preference = {
-            "pl": 1.0000001,
-            "ach": 1.0000002,
-            "ph": 1.0000003,
-            "dis": 1.0000004,
-            "s": 1.0000005,
-            "fs": 1.0000006,
+            "pl": 1.0,
+            "ach": 1.0,
+            "ph": 1.0,
+            "dis": 1.0,
+            "s": 1.0,
+            "fs": 1.0,
         }
         self.pref_enabled = {
             "pl": True,
@@ -105,12 +105,12 @@ class GamificationPreferenceEnv(gym.Env):
         super().reset(seed=seed)
 
         self.hexad_preference = {
-            "pl": 1.0000001,
-            "ach": 1.0000002,
-            "ph": 1.0000003,
-            "dis": 1.0000004,
-            "s": 1.0000005,
-            "fs": 1.0000006,
+            "pl": 1.0,
+            "ach": 1.0,
+            "ph": 1.0,
+            "dis": 1.0,
+            "s": 1.0,
+            "fs": 1.0,
         }
 
         if self.fatigue_enabled:
@@ -134,9 +134,9 @@ class GamificationPreferenceEnv(gym.Env):
             for hex_type, value in hex_load.items():
                 reward += self.hexad_adjusted[hex_type] * value
 
-        if action == self._history[0] and action != self.ge_to_action["Nothing"]:
+        if action == self._history[0]:
             reward -= self.penalty[0]
-        if action == self._history[1]:  # and action != self.ge_to_action["Nothing"]
+        if action == self._history[1] and action != self.ge_to_action["Nothing"]:
             reward -= self.penalty[1]
 
         if ge_name in self.ge_mods:
@@ -149,13 +149,13 @@ class GamificationPreferenceEnv(gym.Env):
 
         if self.user_answer == "accept" and self.pref_enabled[ge.type]:
             pref = self.hexad_preference[ge.type]
-            pref += 0.2 if pref < 1.0 else 0.1 if pref < 1.25 else 0.05
+            pref += 0.2 if pref < 1.0 else 0.1 if pref < 1.3 else 0.05
             pref=min(pref,1.7)
             self.hexad_preference[ge.type] = pref
 
         if self.user_answer == "decline" and self.pref_enabled[ge.type]:
             pref = self.hexad_preference[ge.type]
-            pref -= 0.1 if pref < 1.0 else 0.2 if pref < 1.25 else 0.2
+            pref -= 0.1 if pref < 1.0 else 0.1 if pref < 1.3 else 0.2
             pref=max(pref,0.1)
             self.hexad_preference[ge.type] = pref
 
