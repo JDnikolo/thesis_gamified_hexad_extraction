@@ -32,8 +32,8 @@ class gamification_element:
     def __str__(self) -> str:
         return (
             self.name
-            + "\nPrimary type: {self.type} - Loads: "
-            + self.loads.load_dict.__str__()
+            + "\nPrimary type: {} - Loads: ".format(self.type)
+            + self.loads.__str__()
         )
 
 
