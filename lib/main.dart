@@ -75,6 +75,7 @@ class _MyHomePageState extends State<MyHomePage>
   Timer? answerTime;
   int secondsLeft = 0;
   bool textAnimationCompleted = true;
+  bool flipAnimationCompleted = true;
   final FlipCardController flipController = FlipCardController();
   double climberIconOrientation = 1.0;
   List<Point<double>> climbPoints = [];
@@ -162,9 +163,9 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   void _nextDialog() async {
-    debugPrint("Dialog Area Pressed.");
     if (currentStatus == QuestionStatus.answering ||
-        textAnimationCompleted == false) return;
+        !textAnimationCompleted ||
+        !flipAnimationCompleted) return;
     textAnimationCompleted = false;
     if (currentStatus == QuestionStatus.intro) {
       if (textList.length > 1) {
@@ -199,6 +200,7 @@ class _MyHomePageState extends State<MyHomePage>
         });
         textList.removeAt(0);
       } else {
+        flipAnimationCompleted = false;
         debugPrint("Moving to intro mode of next question.");
         setState(() {
           currentText = "";
@@ -227,15 +229,20 @@ class _MyHomePageState extends State<MyHomePage>
         }
         flipController.flipcard();
         await Future.delayed(const Duration(seconds: 1));
+        flipAnimationCompleted = true;
       }
     }
   }
 
   void moveClimberIcon() async {
     double newLeft;
+    int rand;
     if (scenarios.isNotEmpty) {
       distanceFromBottom += 13;
-      newLeft = distanceFromLeft + Random().nextInt(200) - 100;
+      rand = Random().nextInt(200) - 100;
+      if (rand <= 0 && rand > -50) rand = -50;
+      if (rand > 0 && rand < 50) rand = 50;
+      newLeft = distanceFromLeft + rand;
       if (newLeft < (distanceFromBottom + 50) / 1.6) {
         newLeft = (distanceFromBottom + 50) / 1.6;
       }
