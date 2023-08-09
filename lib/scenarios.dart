@@ -37,8 +37,9 @@ class Option {
 class Scenario {
   final List<String> introDialog;
   final List<Option> options;
+  final String imageName;
 
-  Scenario(this.introDialog, this.options) {
+  Scenario(this.introDialog, this.options, [this.imageName = 'mountain.png']) {
     assert(options.length == 2);
   }
 }
@@ -70,131 +71,140 @@ final List<Scenario> allScenarios = [
   //
   //Player-Achiever
   //
+  Scenario([
+    "Moving on, here's what's happening:",
+    "Looks like there's a gem at the top of that challenging wall!",
+    "Will you climb it once and get the gem?",
+    "Or would you rather stay here for a while and master climbing this difficult wall?",
+    "What will you do?",
+  ], [
+    Option(
+        "Get the gem for a reward",
+        [
+          "No need to tire yourself out here, getting the gem is quite enough.",
+          "It should fetch quite the reward at one of the camps!",
+        ],
+        player,
+        1.0,
+        {}),
+    Option(
+        "Master climbing the slope",
+        [
+          "(...after a little while...)",
+          "Looks like you have the hang of it now!",
+          "Your climbing skills are getting better by the minute.",
+        ],
+        achiever,
+        1.0,
+        {})
+  ], "P-A.png"),
+  //
+  //Player-Philanthropist
+  //
   Scenario(
     [
-      "Moving on, here's what's happening:",
-      "Looks like there's a gem at the top of that challenging wall!",
-      "Will you climb it once and get the gem?",
-      "Or would you rather stay here for a while and master climbing this difficult wall?",
-      "What will you do?",
+      "Ok, let's continue.",
+      "You've almost made it to the next camp.",
+      "But what's this on the ground?",
+      "You see a high-quality tool left behind, one you already have.",
+      "Would you like to give it away to someone at the camp?",
+      "You could also trade it for something valuable.",
+      "What will it be?"
     ],
     [
       Option(
-          "Get the gem for a reward",
+          "Give the tool away.",
           [
-            "No need to tire yourself out here, getting the gem is quite enough.",
-            "It should fetch quite the reward at one of the camps!",
+            "Looks like they were looking for it.",
+            "They look very grateful that you returned their tool!",
+            "You've certainly made their climb easier."
+          ],
+          philanthropist,
+          1.0,
+          {}),
+      Option(
+          "Trade it for a reward.",
+          [
+            "You have to haggle a bit for it, but you get your reward!",
+            "Thankfully good gear is always in demand up here."
+          ],
+          player,
+          1.0,
+          {})
+    ],
+    "P-Ph.png",
+  ),
+  //
+  //Player-Socializer
+  //
+  Scenario(
+    [
+      "Moving on, what's this?",
+      "A few people have set up camp outside this little cave.",
+      "Looks like they're mining for gems while they're here.",
+      "Wanna join in the hunt for a gem of your own?",
+      "You can also just chill with the others around the campfire.",
+      "What do you think?"
+    ],
+    [
+      Option(
+          "Mine for gems",
+          [
+            "Well then, pick up your pick and wish for luck!",
+            "...",
+            "Over there, you can see something shiny!",
+            "Looks like you've found your gem!",
           ],
           player,
           1.0,
           {}),
       Option(
-          "Master climbing the slope",
+          "Socialize with the other climbers",
           [
-            "(...after a little while...)",
-            "Looks like you have the hang of it now!",
-            "Your climbing skills are getting better by the minute.",
+            "Might as well chat a bit before moving on, right?",
+            "The other climbers have some good tips for the road ahead.",
+            "You'll be breezing through the next part of the mountain!"
           ],
-          achiever,
+          socializer,
           1.0,
           {})
     ],
+    "P-S.png",
   ),
-  //
-  //Player-Philanthropist
-  //
-  Scenario([
-    "Ok, let's continue.",
-    "You've almost made it to the next camp.",
-    "But what's this on the ground?",
-    "You see a high-quality tool left behind, one you already have.",
-    "Would you like to give it away to someone at the camp?",
-    "You could also trade it for something valuable.",
-    "What will it be?"
-  ], [
-    Option(
-        "Give the tool away.",
-        [
-          "Looks like they were looking for it.",
-          "They look very grateful that you returned their tool!",
-          "You've certainly made their climb easier."
-        ],
-        philanthropist,
-        1.0,
-        {}),
-    Option(
-        "Trade it for a reward.",
-        [
-          "You have to haggle a bit for it, but you get your reward!",
-          "Thankfully good gear is always in demand up here."
-        ],
-        player,
-        1.0,
-        {})
-  ]),
-  //
-  //Player-Socializer
-  //
-  Scenario([
-    "Moving on, what's this?",
-    "A few people have set up camp outside this little cave.",
-    "Looks like they're mining for gems while they're here.",
-    "Wanna join in the hunt for a gem of your own?",
-    "You can also just chill with the others around the campfire.",
-    "What do you think?"
-  ], [
-    Option(
-        "Mine for gems",
-        [
-          "Well then, pick up your pick and wish for luck!",
-          "...",
-          "Over there, you can see something shiny!",
-          "Looks like you've found your gem!",
-        ],
-        player,
-        1.0,
-        {}),
-    Option(
-        "Socialize with the other climbers",
-        [
-          "Might as well chat a bit before moving on, right?",
-          "The other climbers have some good tips for the road ahead.",
-          "You'll be breezing through the next part of the mountain!"
-        ],
-        socializer,
-        1.0,
-        {})
-  ]),
   //
   //Player-Disruptor
   //
-  Scenario([
-    "Ok, on to the next one.",
-    "Look, you're approaching a camp site.",
-    "Gotta decide what to do with that gem you found on the way!",
-    "Are you gonna trade it for something else straight away?",
-    "Or will you keep it and boast with it to the other climbers for a while?",
-    "What will you do?"
-  ], [
-    Option(
-        "Boast about it to the others",
-        [
-          "Time to showboat a bit!",
-          "Oh man, I can't wait to see their faces.",
-        ],
-        disruptor,
-        1.0,
-        {}),
-    Option(
-        "Trade it for a reward",
-        [
-          "Might as well stock up while you can.",
-          "Showboating will have to wait!",
-        ],
-        player,
-        1.0,
-        {})
-  ]),
+  Scenario(
+    [
+      "Ok, on to the next one.",
+      "Look, you're approaching a camp site.",
+      "Gotta decide what to do with that gem you found on the way!",
+      "Are you gonna trade it for something else straight away?",
+      "Or will you keep it and boast with it to the other climbers for a while?",
+      "What will you do?"
+    ],
+    [
+      Option(
+          "Boast about it to the others",
+          [
+            "Time to showboat a bit!",
+            "Oh man, I can't wait to see their faces.",
+          ],
+          disruptor,
+          1.0,
+          {}),
+      Option(
+          "Trade it for a reward",
+          [
+            "Might as well stock up while you can.",
+            "Showboating will have to wait!",
+          ],
+          player,
+          1.0,
+          {})
+    ],
+    "P-D.png",
+  ),
   //
   //Player-FreeSpirit
   //
@@ -227,39 +237,37 @@ final List<Scenario> allScenarios = [
           1.0,
           {})
     ],
+    "P-FS.png",
   ),
   //
   //Philanthropist-Socializer
   //
-  Scenario(
-    [
-      "Moving right along!",
-      "You've reached another campsite.",
-      "Looks like people are resting, talking around the campfires.",
-      "A few groups are repairing others' broken equipment while they're resting.",
-      "Who would you rather join?"
-    ],
-    [
-      Option(
-          "Socialize around a fire",
-          [
-            "Nothing helps you rest quite like company around the fire!",
-            "Let's see if the others have any good advice to share."
-          ],
-          socializer,
-          1.0,
-          {}),
-      Option(
-          "Help repair the climbers' gear",
-          [
-            "Can't have people relying on faulty gear, right?",
-            "Let's see what you can help repair before resting."
-          ],
-          philanthropist,
-          1.0,
-          {}),
-    ],
-  ),
+  Scenario([
+    "Moving right along!",
+    "You've reached another campsite.",
+    "Looks like people are resting, talking around the campfires.",
+    "A few groups are repairing others' broken equipment while they're resting.",
+    "Who would you rather join?"
+  ], [
+    Option(
+        "Socialize around a fire",
+        [
+          "Nothing helps you rest quite like company around the fire!",
+          "Let's see if the others have any good advice to share."
+        ],
+        socializer,
+        1.0,
+        {}),
+    Option(
+        "Help repair the climbers' gear",
+        [
+          "Can't have people relying on faulty gear, right?",
+          "Let's see what you can help repair before resting."
+        ],
+        philanthropist,
+        1.0,
+        {}),
+  ], "Ph-S.png"),
   //
   //Philanthropist-Disruptor
   //
@@ -293,6 +301,7 @@ final List<Scenario> allScenarios = [
         {}, //consider: achiever
       ),
     ],
+    "Ph-D.png",
   ),
   //
   //Philanthropist-Free Spirit
@@ -328,6 +337,7 @@ final List<Scenario> allScenarios = [
         {}, //consider: achiever
       ),
     ],
+    "Ph-FS.png",
   ),
   //
   //Philanthropist-Achiever
@@ -364,6 +374,7 @@ final List<Scenario> allScenarios = [
         {}, //consider: achiever, free spirit
       ),
     ],
+    "Ph-A.png",
   ),
   //
   //Socializer-Disruptor
@@ -399,6 +410,7 @@ final List<Scenario> allScenarios = [
         {}, //consider: free spirit, achiever?
       ),
     ],
+    "S-D.png",
   ),
   //
   //Socializer-Free Spirit
@@ -434,6 +446,7 @@ final List<Scenario> allScenarios = [
         {}, //consider: disruptor?
       ),
     ],
+    "S-FS.png",
   ),
   //
   //Socializer-Achiever
@@ -468,6 +481,7 @@ final List<Scenario> allScenarios = [
         {}, //player?
       ),
     ],
+    "S-A.png",
   ),
   //
   //Disruptor-Free Spirit
@@ -503,6 +517,7 @@ final List<Scenario> allScenarios = [
         {},
       ),
     ],
+    "D-FS.png",
   ),
   //
   //Disruptor-Achiever
@@ -538,6 +553,7 @@ final List<Scenario> allScenarios = [
         {}, //free spirit?
       ),
     ],
+    "D-A.png",
   ),
   //
   //Free Spirit-Achiever
@@ -573,5 +589,6 @@ final List<Scenario> allScenarios = [
         {}, //player?
       ),
     ],
+    "FS-A.png",
   ),
 ];
