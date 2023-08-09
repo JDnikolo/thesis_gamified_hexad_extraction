@@ -83,8 +83,9 @@ class _MyHomePageState extends State<MyHomePage>
 
   //point and power-up related variables
   int points = 0;
-  bool retryActive = false;
+  bool retryActive = true;
   bool timeExtended = false;
+  bool skipped = false;
 
   //hexad results
   final Map<HexadType, double> hexadResults = {
@@ -101,6 +102,7 @@ class _MyHomePageState extends State<MyHomePage>
       allScenarios.add(currentScenario);
       currentStatus = QuestionStatus.outro;
       setState(() {
+        skipped = true;
         currentText = "Oops!";
         textList = [
           "Looks like you ran out of time, but you had a Retry ready.",
@@ -207,13 +209,14 @@ class _MyHomePageState extends State<MyHomePage>
         });
         flipController.flipcard();
         await Future.delayed(const Duration(seconds: 1));
-        moveClimberIcon();
+        if (!skipped) moveClimberIcon();
+        skipped = false;
         await Future.delayed(const Duration(milliseconds: 1500));
         scenarios.shuffle();
         if (scenarios.isNotEmpty) {
           setState(() {
             currentScenario = scenarios.first;
-            textList = currentScenario.introDialog;
+            textList = List.from(currentScenario.introDialog);
             scenarios.removeAt(0);
             currentText = textList.first;
             textList.removeAt(0);
@@ -321,7 +324,7 @@ class _MyHomePageState extends State<MyHomePage>
         title: Text(widget.title),
       ),
       drawer: Drawer(
-        backgroundColor: const Color.fromRGBO(255, 255, 255, 0.1),
+        backgroundColor: Color.fromARGB(185, 255, 255, 255),
         width: 100,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -529,13 +532,10 @@ class _MyHomePageState extends State<MyHomePage>
                     height: MediaQuery.of(context).size.height - 330,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).colorScheme.tertiaryContainer),
-                      child: Center(
-                        child: Text("Graphic Area",
-                            style:
-                                TextStyle(color: Colors.black.withAlpha(100))),
-                      ),
+                          image: DecorationImage(
+                              fit: BoxFit.fill,
+                              image: AssetImage(
+                                  "images/scenario/${currentScenario.imageName}"))),
                     ),
                   ),
                 ),
