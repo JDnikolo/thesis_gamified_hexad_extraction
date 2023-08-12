@@ -151,10 +151,11 @@ class ScoreChangeBot:
         hex_p = copy.deepcopy(hexad_types)
         self.dominants = []
         k = max(hex_p, key=hex_p.get)
-        while hex_p[k] >= 3.0:
+        while hex_p[k] >= 3.0 and len([*hex_p.keys()])>0:
             self.dominants.append(k)
             hex_p.pop(k)
-            k = max(hex_p, key=hex_p.get)
+            if len([*hex_p.keys()])>0:
+                k = max(hex_p, key=hex_p.get)
         assert divisor > 0
         self.div = divisor
         self.rng = np.random.default_rng(seed=seed)

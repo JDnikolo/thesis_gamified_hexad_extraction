@@ -36,7 +36,7 @@ class BasicAGAgent:
         obs = (13, 13)
         if reset_env:
             obs, _ = env.reset()
-        for _ in tqdm(range(iterations),leave=False):
+        for _ in tqdm(range(iterations)):
             action = self.random_action()
             new_obs, reward, _, _, _ = env.step(action)
             self.update(obs, action, reward, new_obs)
@@ -130,7 +130,7 @@ class EpsilonAGAgent:
         obs = (13, 13)
         if reset_env:
             obs, _ = env.reset()
-        for _ in tqdm(range(iterations // 1000),leave=False):
+        for _ in tqdm(range(iterations // 1000)):
             for _ in range(1000):
                 action = self.get_action(
                     obs,
@@ -254,7 +254,7 @@ class RandomBestOfX:
         obs = (13, 13)
         if reset_env:
             obs, _ = env.reset()
-        for _ in tqdm(range(iterations // 1000),leave=False):
+        for _ in tqdm(range(iterations // 1000)):
             for _ in range(1000):
                 action = self.random_action()
                 new_obs, reward, _, _, _ = env.step(action)
@@ -380,7 +380,7 @@ class FatigueAwareAgent:
         obs = (13, 13)
         if reset_env:
             obs, _ = env.reset()
-        for _ in tqdm(range(iterations // 1000),leave=False):
+        for _ in tqdm(range(iterations // 1000)):
             for _ in range(1000):
                 action = self.get_action(obs,avoid_reps=False)
                 new_obs, reward, _, _, _ = env.step(action)

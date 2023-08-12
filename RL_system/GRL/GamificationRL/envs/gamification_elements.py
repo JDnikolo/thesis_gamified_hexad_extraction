@@ -1,5 +1,5 @@
 hexad_types = ["pl", "ach", "ph", "dis", "s", "fs"]
-
+hexad_types_full = ["Player", "Achiever", "Philanthropist", "Disruptor", "Socializer", "Free Spirit"]
 
 class hexad_load_dict:
     def __init__(self, pl=0, ach=0, ph=0, dis=0, s=0, fs=0, factor=1.0):

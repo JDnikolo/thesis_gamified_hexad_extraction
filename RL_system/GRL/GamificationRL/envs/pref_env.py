@@ -231,7 +231,7 @@ class GamificationPreferenceEnv(gym.Env):
                 new_fatigue = fatigue
                 new_fatigue += (
                     self.f_rp
-                    if (elem != ge_name or elem == "Nothing")
+                    if ((elem != ge_name) or elem == "Nothing")
                     else -1 * self.f_rd
                 )
                 new_fatigue = min(new_fatigue, 1)
