@@ -13,7 +13,7 @@ class BasicAGAgent:
         self.d_f = discount_factor
         self.error = []
         self.action_space = env.action_space
-    
+
     def reset(self):
         self.q_values = defaultdict(lambda: np.zeros(self.action_space.n))
         self.error = []
@@ -36,7 +36,7 @@ class BasicAGAgent:
         obs = (13, 13)
         if reset_env:
             obs, _ = env.reset()
-        for _ in tqdm(range(iterations)):
+        for _ in (range(iterations)):
             action = self.random_action()
             new_obs, reward, _, _, _ = env.step(action)
             self.update(obs, action, reward, new_obs)
@@ -99,7 +99,6 @@ class EpsilonAGAgent:
 
         self.error = []
 
-
     def reset(self):
         self.q_values = defaultdict(lambda: np.zeros(self.action_space.n))
         self.error = []
@@ -130,7 +129,7 @@ class EpsilonAGAgent:
         obs = (13, 13)
         if reset_env:
             obs, _ = env.reset()
-        for _ in tqdm(range(iterations // 1000)):
+        for _ in (range(iterations // 1000)):
             for _ in range(1000):
                 action = self.get_action(
                     obs,
@@ -166,7 +165,7 @@ class EpsilonAGAgent:
         error = self.error[-1]
         obs = new_obs
         old_state = obs
-        self.epsilon+=self.e_d*retrain_iterations
+        self.epsilon += self.e_d*retrain_iterations
         for _ in range(retrain_iterations):
             if random_retrain:
                 a = self.random_action()
@@ -216,7 +215,7 @@ class RandomBestOfX:
         self.error = []
 
     def reset(self):
-        self.q_values = defaultdict(lambda: np.zeros(self.action_space.n))        
+        self.q_values = defaultdict(lambda: np.zeros(self.action_space.n))
         self.error = []
 
     def decay_epsilon(self):
@@ -225,7 +224,7 @@ class RandomBestOfX:
     def get_action(self, obs: tuple, avoid_reps=False):
         if np.random.random() < self.epsilon:
             actions = np.argpartition(self.q_values[obs], kth=-1 * self.choices)[
-                -1 * self.choices :
+                -1 * self.choices:
             ]
             action = np.random.choice(actions) + 1
             while action in obs and avoid_reps:
@@ -254,7 +253,7 @@ class RandomBestOfX:
         obs = (13, 13)
         if reset_env:
             obs, _ = env.reset()
-        for _ in tqdm(range(iterations // 1000)):
+        for _ in (range(iterations // 1000)):
             for _ in range(1000):
                 action = self.random_action()
                 new_obs, reward, _, _, _ = env.step(action)
@@ -288,7 +287,7 @@ class RandomBestOfX:
         error = self.error[-1]
         obs = new_obs
         old_state = obs
-        self.epsilon+=self.e_d*retrain_iterations
+        self.epsilon += self.e_d*retrain_iterations
         for _ in range(retrain_iterations):
             if random_retrain:
                 a = self.random_action()
@@ -302,6 +301,7 @@ class RandomBestOfX:
         obs = old_state
         self.l_r = old_lr
         return action, reward, obs, info, error
+
 
 class FatigueAwareAgent:
     """
@@ -331,22 +331,21 @@ class FatigueAwareAgent:
         self.e_min = epsilon_min
         self.e_d = epsilon_decay
 
-        self.fatigues =  np.ones(self.action_space.n,dtype=float)
-        self._fatigue_rep=.0
-        self._last_use = np.zeros(self.action_space.n,dtype=int)
-        self._current_step=0
+        self.fatigues = np.ones(self.action_space.n, dtype=float)
+        self._fatigue_rep = .0
+        self._last_use = np.zeros(self.action_space.n, dtype=int)
+        self._current_step = 0
 
         self.error = []
-    
+
     def reset(self):
         self.q_values = defaultdict(lambda: np.zeros(self.action_space.n))
-        self.fatigues =  np.ones(self.action_space.n,dtype=float)
-        self._fatigue_rep=.0
-        self._last_use = np.zeros(self.action_space.n,dtype=int)
-        self._current_step=0
+        self.fatigues = np.ones(self.action_space.n, dtype=float)
+        self._fatigue_rep = .0
+        self._last_use = np.zeros(self.action_space.n, dtype=int)
+        self._current_step = 0
         self.error = []
 
-    
     def decay_epsilon(self):
         self.epsilon = max(self.e_min, self.epsilon - self.e_d)
 
@@ -362,7 +361,7 @@ class FatigueAwareAgent:
         return self.action_space.sample()
 
     def update(self, obs, action, reward, next_obs):
-        adjusted = np.multiply(self.q_values[next_obs],self.fatigues)
+        adjusted = np.multiply(self.q_values[next_obs], self.fatigues)
         new_q = np.max(adjusted)
         temp_diff = reward + self.d_f * new_q - self.q_values[obs][action - 1]
 
@@ -380,9 +379,9 @@ class FatigueAwareAgent:
         obs = (13, 13)
         if reset_env:
             obs, _ = env.reset()
-        for _ in tqdm(range(iterations // 1000)):
+        for _ in (range(iterations // 1000)):
             for _ in range(1000):
-                action = self.get_action(obs,avoid_reps=False)
+                action = self.get_action(obs, avoid_reps=False)
                 new_obs, reward, _, _, _ = env.step(action)
                 self.update(obs, action, reward, new_obs)
                 obs = new_obs
@@ -402,38 +401,40 @@ class FatigueAwareAgent:
         random_retrain=False,
         act=None,
     ):
-        #Adjust learning rate
+        # Adjust learning rate
         old_lr = self.l_r
         self.l_r = learning_rate
-        #Get the action to be performed or use the action provided.
+        # Get the action to be performed or use the action provided.
         if act is None:
             action = self.get_action(obs, avoid_reps=True)
         else:
             action = act
-        #Set user answer and advance environment.
+        # Set user answer and advance environment.
         env.set_user_answer(answer)
         new_obs, reward, _, _, info = env.step(action)
-        new_fatigue=info['fatigue'][env.action_to_ge[action]]
-        #Update agent step
-        self._current_step+=1
-        #Update fatigue replenishment rate
-        if new_fatigue>self.fatigues[action-1]:
-            self._fatigue_rep=(new_fatigue-self.fatigues[action-1])/(self._current_step-self._last_use[action-1])
-        #Update action fatigue and last use counter
-        self._last_use[action-1]=self._current_step
-        if self._fatigue_rep!=.0:
-            for i,_ in enumerate(self.fatigues):
-                if i!=action-1:
-                    self.fatigues[i]=min(self.fatigues[i]+self._fatigue_rep,1.0)
+        new_fatigue = info['fatigue'][env.action_to_ge[action]]
+        # Update agent step
+        self._current_step += 1
+        # Update fatigue replenishment rate
+        if new_fatigue > self.fatigues[action-1]:
+            self._fatigue_rep = (
+                new_fatigue-self.fatigues[action-1])/(self._current_step-self._last_use[action-1])
+        # Update action fatigue and last use counter
+        self._last_use[action-1] = self._current_step
+        if self._fatigue_rep != .0:
+            for i, _ in enumerate(self.fatigues):
+                if i != action-1:
+                    self.fatigues[i] = min(
+                        self.fatigues[i]+self._fatigue_rep, 1.0)
                 else:
-                    self.fatigues[i]=new_fatigue
-        #Update Q values and get error
+                    self.fatigues[i] = new_fatigue
+        # Update Q values and get error
         self.update(obs, action, reward, new_obs)
         error = self.error[-1]
-        #retrain
+        # retrain
         obs = new_obs
         old_state = obs
-        self.epsilon+=self.e_d*retrain_iterations
+        self.epsilon += self.e_d*retrain_iterations
         for _ in range(retrain_iterations):
             if random_retrain:
                 a = self.random_action()
@@ -443,7 +444,7 @@ class FatigueAwareAgent:
             self.update(obs, a, rr, new_obs)
             obs = new_obs
             self.decay_epsilon()
-        #reset state and return
+        # reset state and return
         env.set_history(old_state)
         obs = old_state
         self.l_r = old_lr
