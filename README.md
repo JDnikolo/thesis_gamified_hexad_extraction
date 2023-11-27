@@ -1,16 +1,10 @@
-# gamified_hexad_extraction
+# Diploma Thesis: 
+## Proposal for an Adaptive Gamification System Utilizing Reinforcement Learning and Gamified User Hexad Typology Extraction
 
-Thesis Flutter Project.
+This repository contains the Flutter project and Python source code used in my Diploma Thesis.
 
-## Getting Started
+## Contents
 
-This project is a starting point for a Flutter application.
+* [lib](https://github.com/JDnikolo/thesis_gamified_hexad_extraction/tree/main/lib): contains the Dart source code used for the gamified Hexad profile extraction prototype Hexad Mountain.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* [RL_system](https://github.com/JDnikolo/thesis_gamified_hexad_extraction/tree/main/RL_system): contains the source code for the reinforcement learning environment (according to Gymnasium specifications) and agents, as well as the user answer simulation bot. Also contains Notebooks for testing various aspects of the system.

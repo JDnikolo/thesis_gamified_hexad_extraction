@@ -1,5 +1,6 @@
 """
 """
+import copy
 import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
@@ -15,7 +16,7 @@ class GamificationPreferenceEnv(gym.Env):
     to their Hexad profile. Continuous and deterministic.
     """
 
-    metadata = {'render_modes':[]}
+    metadata = {"render_modes": []}
     pref_history = {}
     user_answer = None
     hexad_adjusted = {}
@@ -30,9 +31,9 @@ class GamificationPreferenceEnv(gym.Env):
         fatigue_reduction=0.05,
         fatigue_replenish=0.0125,
         nothing_reward=75,
-        pref_ranges=(1.0,1.3,1.7),
-        pref_increase=(0.2,0.1,0.05),
-        pref_decrease=(0.05,0.1,0.1),
+        pref_ranges=(1.0, 1.3, 1.7),
+        pref_increase=(0.2, 0.1, 0.05),
+        pref_decrease=(0.05, 0.1, 0.1),
         pref_min=0.1,
         seed=None,
     ):
@@ -58,15 +59,15 @@ class GamificationPreferenceEnv(gym.Env):
         self.penalty = repetition_penalty
 
         self.hexad_type = hexad_load
-        assert len(pref_ranges)==len(pref_decrease)==len(pref_increase)
-        self.p_range=np.array(pref_ranges)
-        self.p_max=pref_ranges[-1]
-        self.p_min=pref_min
+        assert len(pref_ranges) == len(pref_decrease) == len(pref_increase)
+        self.p_range = np.array(pref_ranges)
+        self.p_max = pref_ranges[-1]
+        self.p_min = pref_min
         self.p_inc = pref_increase
         self.p_dec = pref_decrease
         self.hexad_preference = {
             "pl": 1.0,
-            "ach": 1.0, 
+            "ach": 1.0,
             "ph": 1.0,
             "dis": 1.0,
             "s": 1.0,
@@ -159,7 +160,7 @@ class GamificationPreferenceEnv(gym.Env):
 
         return self._get_obs(), self._get_info()
 
-    def calculate_reward(self, action):
+    def calculate_reward(self, action, profile=None):
         """
         Calculates and returns the reward of using `action` on the current state.
         """
@@ -167,12 +168,20 @@ class GamificationPreferenceEnv(gym.Env):
         ge = self.ge[ge_name]
         hex_load = self.ge[ge_name].loads
         reward = 0
+        if profile is None:
+            hex_adjs = self.hexad_adjusted
+        else:
+            hex_adjs = copy.deepcopy(profile)
+            for hex_type in self.hexad_type:
+                hex_adjs[hex_type] = (
+                    hex_adjs[hex_type] * self.hexad_preference[hex_type]
+                )
 
         if ge_name == "Nothing":
             reward = self.nothing_reward
         else:
             for hex_type, value in hex_load.items():
-                reward += self.hexad_adjusted[hex_type] * value
+                reward += hex_adjs[hex_type] * value
 
         if ge_name in self.ge_mods:
             reward += self.ge_mods[ge_name]
@@ -189,19 +198,19 @@ class GamificationPreferenceEnv(gym.Env):
 
         return reward
 
-    def get_best_action(self):
+    def get_best_action(self,profile=None):
         """
         Calculates rewards for all actions and returns the best available action and its reward.
         """
         rewards = []
         for action in range(1, self.action_space.n + 1):
-            rewards.append(self.calculate_reward(action=action))
+            rewards.append(self.calculate_reward(action=action,profile=profile))
         arg = np.argmax(rewards)
         return arg + 1, rewards[arg]
 
     def step(self, action):
         """
-        Calculates the reward of `action` and changes the state of the environment. 
+        Calculates the reward of `action` and changes the state of the environment.
         Updates Hexad preferences and fatigue if an answer was provided.
         Returns the reward and new observable state and information.
         """
@@ -211,17 +220,21 @@ class GamificationPreferenceEnv(gym.Env):
 
         reward = self.calculate_reward(action=action)
 
-        if self.user_answer == "accept" and self.pref_enabled[ge.type]\
-            and self.hexad_adjusted[ge.type]!=max(self.hexad_adjusted.values()):
+        if (
+            self.user_answer == "accept"
+            and self.pref_enabled[ge.type]
+            and self.hexad_adjusted[ge.type] != max(self.hexad_adjusted.values())
+        ):
             pref = self.hexad_preference[ge.type]
-            index = np.searchsorted(self.p_range,pref)
+            index = np.searchsorted(self.p_range, pref)
             pref += self.p_inc[index]
             pref = min(pref, self.p_max)
             self.hexad_preference[ge.type] = pref
 
-        if self.user_answer == "decline" and self.pref_enabled[ge.type]:
+        if (self.user_answer == "decline" and self.pref_enabled[ge.type]
+            and self.hexad_adjusted[ge.type] != min(self.hexad_adjusted.values())):
             pref = self.hexad_preference[ge.type]
-            index = np.searchsorted(self.p_range,pref)
+            index = np.searchsorted(self.p_range, pref)
             pref -= self.p_dec[index]
             pref = max(pref, self.p_min)
             self.hexad_preference[ge.type] = pref
@@ -254,7 +267,7 @@ class GamificationPreferenceEnv(gym.Env):
                 self.hexad_type[hex_type] * self.hexad_preference[hex_type]
             )
 
-    def set_history(self, new_history: tuple[int,int]):
+    def set_history(self, new_history: tuple[int, int]):
         """
         Sets the state of the environment to `new_history`
         """
